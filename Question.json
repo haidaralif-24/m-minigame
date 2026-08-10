@@ -1,0 +1,16 @@
+[
+  {
+    "id": "q001",
+    "prompt": "In which city was the Prophet Muhammad born?",
+    "choices": ["Mecca", "Medina", "Jerusalem", "Damascus"],
+    "answerIndex": 0,
+    "sourceRef": "Ibn Ishaq, Sirah — standard biography"
+  },
+  {
+    "id": "q002",
+    "prompt": "What was the occupation of the Prophet Muhammad before prophethood?",
+    "choices": ["Farmer", "Merchant/trader", "Blacksmith", "Fisherman"],
+    "answerIndex": 1,
+    "sourceRef": "Ibn Ishaq, Sirah — standard biography"
+  }
+]

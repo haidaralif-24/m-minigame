@@ -1,3 +1,8 @@
+import meta from '../content/maulid-nabi/meta.json';
+
+export const ACTIVE_EVENT = meta.id;
+export const ACTIVE_META = meta;
+
 export const NUM_TEAMS = 6;
 export const TEAM_NAMES = ['Team 1', 'Team 2', 'Team 3', 'Team 4', 'Team 5', 'Team 6'];
 export const TEAM_IDS = ['team1', 'team2', 'team3', 'team4', 'team5', 'team6'];

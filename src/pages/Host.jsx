@@ -4,7 +4,7 @@ import Board from '../components/Board.jsx';
 import Leaderboard from '../components/Leaderboard.jsx';
 import HostControls from '../components/HostControls.jsx';
 import { getInitialGameState } from '../services/gameLogic.js';
-import { TOKEN_COLORS, TEAM_NAMES } from '../data/constants.js';
+import { TOKEN_COLORS, TEAM_NAMES, ACTIVE_META } from '../data/constants.js';
 
 export default function HostPage() {
   const { gameState, loading, error, updateGameState } = useGameState();
@@ -22,9 +22,9 @@ export default function HostPage() {
     <div className="min-h-screen bg-[#0f172a] p-4 md:p-8">
       <header className="text-center mb-8">
         <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2 tracking-tight">
-          Maulid Board
+          {ACTIVE_META.title}
         </h1>
-        <p className="text-slate-400">Host View — Team 1-6 Snake Board</p>
+        <p className="text-slate-400">Host View — {ACTIVE_META.tagline}</p>
       </header>
 
       <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto">

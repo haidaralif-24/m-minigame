@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TEAM_KEYS, TEAM_NAMES, TOKEN_COLORS } from '../data/constants.js';
+import { TEAM_KEYS, TEAM_NAMES, TOKEN_COLORS, ACTIVE_META } from '../data/constants.js';
 import { useGameState } from '../hooks/useGameState.js';
 
 export default function PlayPage() {

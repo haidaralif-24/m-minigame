@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HOST_PIN, TEAM_KEYS } from '../data/constants.js';
+import { HOST_PIN, TEAM_KEYS, ACTIVE_META } from '../data/constants.js';
 
 export default function LobbyPage() {
   const [input, setInput] = useState('');
@@ -24,8 +24,8 @@ export default function LobbyPage() {
   return (
     <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
       <div className="bg-[#1e293b]/80 backdrop-blur-sm rounded-3xl p-10 border border-slate-700/40 max-w-md w-full shadow-[0_0_60px_rgba(6,182,212,0.15)]">
-        <h1 className="text-3xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2">Maulid Board</h1>
-        <p className="text-center text-slate-400 mb-8">Waiting lobby — enter your access key</p>
+        <h1 className="text-3xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2">{ACTIVE_META.title}</h1>
+        <p className="text-center text-slate-400 mb-8">{ACTIVE_META.tagline}</p>
 
         <div className="space-y-4">
           <input

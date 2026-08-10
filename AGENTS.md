@@ -1,30 +1,47 @@
-# Maulid Nabi Mini-Games — Agent Instructions
+# Party Board Game Engine — Agent Instructions
 
 ## What this project is
-A browser-based party game for a school Islamic club's Maulid Nabi event.
-6 teams, each on their own laptop, connected over local/venue wifi.
-Structure is inspired by Mario Party / Stickman Party: mini-games decide
-turn order/dice, then a shared board game is where teams actually race.
+A browser-based, Mario Party / Stickman Party–style event game: teams play
+simultaneous mini-games on their own devices, the results decide dice
+order/size, then everyone races on a shared projected board.
+
+The codebase is split into two layers on purpose:
+
+1. **Engine** (`src/`, minus `src/content/`) — reusable across any event.
+   Routing, Firestore sync, board/dice logic, mini-game contract, theming
+   tokens. Nothing event-specific belongs here.
+2. **Content pack** (`src/content/<event-id>/`) — everything specific to
+   *one* event: title, questions, source references, any content-specific
+   rules. This is what changes when the game is reused for a different
+   event. See `src/content/README.md` for the pack format.
+
+The currently shipped content pack is `maulid-nabi` (a school Islamic
+club's Maulid Nabi event). Treat it as the reference example, not as
+something to special-case in engine code — if you find yourself writing
+`if (eventId === 'maulid-nabi')` anywhere outside `src/content/`, stop and
+move that logic into the content pack instead.
 
 Game loop (repeats per round):
-1. All 6 teams play a mini-game simultaneously on their own device.
-2. Mini-game produces a ranking of teams (1st–6th place).
+1. All teams play a mini-game simultaneously on their own device.
+2. Mini-game produces a ranking of teams (1st–Nth place).
 3. Ranking determines dice order and/or dice size for the board phase
    (e.g. 1st place rolls a d8, last place rolls a d4; OR 1st place rolls first).
 4. Teams roll and move on a shared board. Landing on a "question tile"
-   triggers a quiz question (correct = bonus move, wrong = move back / lose turn).
+   triggers a quiz question pulled from the active content pack (correct =
+   bonus move, wrong = move back / lose turn).
 5. Repeat with a new mini-game next round.
 
 ## Tech stack (do not deviate without asking)
 - **Frontend**: Vite + React (NOT Next.js — no SSR/routing needs, keep it simple)
 - **Realtime sync**: Firebase Firestore (`onSnapshot` listeners)
-- **Hosting**: Vercel (static build) — NOT localhost/local Mac hosting, since
-  the event runs on venue wifi across multiple devices and needs a stable
+- **Hosting**: Vercel (static build) — NOT localhost/local hosting, since
+  events run on venue wifi across multiple devices and need a stable
   public HTTPS URL
-- **Questions/tiles data**: hardcoded JSON in `src/data/` — this is a one-off
-  event, not a reusable product, so a database for content is unnecessary
-  overhead. Do not add a questions database.
-- **Styling**: Tailwind CSS (fast to theme, easy for an agent to iterate on)
+- **Content**: hardcoded JSON per content pack in `src/content/<event-id>/`
+  — no database for content. A pack is a folder of static files, not a CMS.
+- **Styling**: Tailwind CSS + CSS variable theme tokens (see `THEME.md`)
+- **Animation**: framer-motion, already installed — use it for the
+  chunky/bouncy motion `THEME.md` describes rather than raw CSS transitions
 
 ## Roles
 - **Host client** (`/host` route): controls game flow — starts mini-games,
@@ -47,21 +64,33 @@ Game loop (repeats per round):
   type MiniGameResult = { teamId: string; score: number }[]
   ```
   This is the contract the board logic consumes — do not let board logic
-  know or care how a mini-game computed its ranking.
+  know or care how a mini-game computed its ranking. Full rules live in
+  `.opencode/skills/mini-game-contract/SKILL.md`.
 
-## Content rules for questions
-- All Maulid Nabi / Prophet's life questions must be factual and neutral —
-  avoid sectarian-specific claims or disputed theological points. When
-  unsure, phrase questions around widely agreed historical facts (dates,
-  places, names, well-known events) rather than doctrinal interpretation.
-- Keep a `sourceRef` field per question for accountability, even if just a
-  short reference name.
+## Theming
+Visual identity (colors, type, motion, token/tile design) is documented in
+`THEME.md` at the repo root. Read it before touching any component in
+`src/components/` or `src/pages/`. Team accent colors live in
+`src/data/constants.js` (`TOKEN_COLORS`) — event-specific branding (event
+title, logo text, tagline) lives in the active content pack's `meta.json`,
+not hardcoded into page components. If you see a literal event name
+(e.g. "Maulid Board") inside a `.jsx` file, that's a bug — it should be
+read from the content pack.
+
+## Content packs
+See `src/content/README.md` for the full format. Short version: a pack is
+`{ meta.json, questions.json, README.md }` under `src/content/<event-id>/`.
+Question neutrality/accuracy rules are defined per-pack in that pack's own
+`README.md` (see `src/content/maulid-nabi/README.md` for the reference
+example), not in this file — the engine has no opinion on content, only on
+the JSON shape it expects.
 
 ## Non-goals
 - No auth system beyond a simple team name + optional host PIN.
-- No question database / CMS.
-- No mobile app — this is a responsive web app, laptops only.
+- No question database / CMS — content packs are static JSON.
+- No mobile app — this is a responsive web app, laptops/projector only.
 - No SSR, no server-side API routes — Firestore is the only backend.
+- No baking a single event's branding/content into engine code, ever.
 
 ## Commands
 - `npm run dev` — local dev server
