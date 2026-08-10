@@ -7,20 +7,13 @@ import StickmanToken from './StickmanToken.jsx';
 const TILE_SIZE = 56;
 const GAP = 4;
 const COLS = 10;
-const ROWS = 3;
+const ROWS = 4;
 
 function getTilePosition(index) {
-  if (index === 0) return { row: 0, col: 0 };
-  if (index === BOARD_LENGTH - 1) return { row: ROWS - 1, col: COLS - 1 };
-  
-  const adjustedIndex = index - 1;
-  const row = Math.floor(adjustedIndex / (COLS - 1));
-  const colInRow = adjustedIndex % (COLS - 1);
-  
+  const row = Math.floor(index / COLS);
   const isEvenRow = row % 2 === 0;
-  const col = isEvenRow ? colInRow : (COLS - 2 - colInRow);
-  
-  return { row: row + 1, col: isEvenRow ? col : col + 1 };
+  const col = isEvenRow ? (index % COLS) : (COLS - 1 - (index % COLS));
+  return { row, col };
 }
 
 function getTileStyle(index, tile) {

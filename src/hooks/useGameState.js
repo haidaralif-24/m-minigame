@@ -11,7 +11,7 @@ export function useGameState() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const docRef = doc(db, GAME_STATE_DOC);
+    const docRef = doc(db, 'gameState', 'current');
     
     const unsubscribe = onSnapshot(docRef, (snapshot) => {
       if (snapshot.exists()) {
@@ -32,7 +32,7 @@ export function useGameState() {
   }, []);
 
   const updateGameState = async (updates) => {
-    const docRef = doc(db, GAME_STATE_DOC);
+    const docRef = doc(db, 'gameState', 'current');
     await updateDoc(docRef, updates);
   };
 

@@ -1,8 +1,9 @@
 export const NUM_TEAMS = 6;
 export const TEAM_NAMES = ['Team 1', 'Team 2', 'Team 3', 'Team 4', 'Team 5', 'Team 6'];
 export const TEAM_IDS = ['team1', 'team2', 'team3', 'team4', 'team5', 'team6'];
-export const HOST_PIN = '1234';
-export const BOARD_LENGTH = 30;
+export const HOST_PIN = 'dadarzz';
+export const TEAM_KEYS = ['one', 'two', 'three', 'four', 'five', 'six'];
+export const BOARD_LENGTH = 31;
 export const DICE_SIZE = 6;
 
 export const TOKEN_COLORS = [

@@ -6,8 +6,18 @@ import { TOKEN_COLORS } from '../data/constants.js';
 export default function BoardPage() {
   const { gameState, loading, error } = useGameState();
 
-  if (loading) return <div className="p-8 text-center text-slate-400">Connecting...</div>;
-  if (error) return <div className="p-8 text-center text-red-400">Connection error</div>;
+  if (loading) return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-slate-400">Connecting...</div>;
+  if (error) return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-red-400">Connection error</div>;
+
+  if (gameState?.phase === 'lobby') {
+    return (
+      <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-8 text-center">
+        <h1 className="text-6xl font-black text-slate-600 mb-4">⏳</h1>
+        <h2 className="text-3xl font-bold text-white mb-2">Waiting for Host</h2>
+        <p className="text-slate-400 text-lg">The game has not started yet. The host will unlock the board.</p>
+      </div>
+    );
+  }
 
   const activeTeamId = gameState?.turnOrder?.[gameState?.activeTeamIndex];
   const activeTeamNum = parseInt(activeTeamId?.replace('team', ''), 10);

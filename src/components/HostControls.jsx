@@ -9,6 +9,10 @@ export default function HostControls({ gameState, onUpdate }) {
   const [rollResult, setRollResult] = useState(null);
   const [tileResult, setTileResult] = useState(null);
 
+  const handleStartGame = async () => {
+    await onUpdate({ phase: 'board', round: 1, activeTeamIndex: 0 });
+  };
+
   const handlePinSubmit = () => {
     if (pinInput === HOST_PIN) setAuthenticated(true);
   };
@@ -73,7 +77,14 @@ export default function HostControls({ gameState, onUpdate }) {
         <span className="ml-4 text-xs text-slate-500">Turn: {gameState?.round}</span>
       </div>
 
-      {gameState?.winner ? (
+      {gameState?.phase === 'lobby' ? (
+        <button
+          onClick={handleStartGame}
+          className="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-black text-xl py-5 rounded-2xl hover:shadow-[0_0_40px_rgba(34,197,94,0.5)] transition-all active:scale-[0.98] animate-pulse"
+        >
+          START GAME →
+        </button>
+      ) : gameState?.winner ? (
         <div className="text-center py-4">
           <h3 className="text-2xl font-black text-orange-400 mb-2">Winner!</h3>
           <p className="text-lg text-white">Team {parseInt(gameState.winner.replace('team', ''), 10)}</p>
