@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0f172a;
+  --color-board: #1e293b;
+  --color-tile: #334155;
+  --color-tile-border: #475569;
+  --color-accent: #06b6d4;
+  --color-accent-glow: #22d3ee;
+  --color-dice: #f97316;
+  --color-dice-glow: #fb923c;
+  --color-token-1: #ef4444;
+  --color-token-2: #22c55e;
+  --color-token-3: #3b82f6;
+  --color-token-4: #f59e0b;
+  --color-token-5: #a855f7;
+  --color-token-6: #ec4899;
+  --color-text: #f8fafc;
+  --color-text-dim: #94a3b8;
+  --color-bonus: #22c55e;
+  --color-penalty: #ef4444;
+  --color-start: #06b6d4;
+  --color-finish: #f97316;
+  
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  
+  --animate-dice-roll: dice-roll 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --animate-token-move: token-move 0.4s ease-out;
+  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes dice-roll {
+  0% { transform: rotateX(0) rotateY(0) scale(1); }
+  25% { transform: rotateX(180deg) rotateY(90deg) scale(1.1); }
+  50% { transform: rotateX(360deg) rotateY(180deg) scale(1); }
+  75% { transform: rotateX(540deg) rotateY(270deg) scale(1.1); }
+  100% { transform: rotateX(720deg) rotateY(360deg) scale(1); }
+}
+
+@keyframes token-move {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(var(--tx), var(--ty)) scale(1.2); }
+  100% { transform: translate(var(--tx), var(--ty)) scale(1); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px var(--color-accent-glow); }
+  50% { box-shadow: 0 0 40px var(--color-accent-glow), 0 0 60px var(--color-accent-glow); }
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-display);
+    min-height: 100vh;
+  }
+  
+  #root {
+    width: 100%;
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+  }
+  
+  .board-glow {
+    box-shadow: 
+      0 0 30px rgba(6, 182, 212, 0.15),
+      inset 0 0 60px rgba(6, 182, 212, 0.05);
+  }
+  
+  .dice-face {
+    @apply relative w-full h-full;
+  }
+  
+  .pip {
+    @apply absolute w-2 h-2 rounded-full bg-white;
+  }
+}

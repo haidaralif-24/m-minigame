@@ -1,0 +1,56 @@
+import { useGameState } from '../hooks/useGameState.js';
+import Board from '../components/Board.jsx';
+import Leaderboard from '../components/Leaderboard.jsx';
+import { TOKEN_COLORS } from '../data/constants.js';
+
+export default function BoardPage() {
+  const { gameState, loading, error } = useGameState();
+
+  if (loading) return <div className="p-8 text-center text-slate-400">Connecting...</div>;
+  if (error) return <div className="p-8 text-center text-red-400">Connection error</div>;
+
+  const activeTeamId = gameState?.turnOrder?.[gameState?.activeTeamIndex];
+  const activeTeamNum = parseInt(activeTeamId?.replace('team', ''), 10);
+
+  return (
+    <div className="min-h-screen bg-[#0f172a] p-4 md:p-8">
+      <header className="text-center mb-8">
+        <h1 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2 tracking-tight">
+          Maulid Board
+        </h1>
+        <p className="text-slate-400">Spectator / Projector View</p>
+        <div className="mt-4 inline-block px-4 py-2 rounded-full bg-[#0f172a] border border-cyan-500/30 text-cyan-300 font-bold">
+          Round {gameState?.round || 1} — Active: Team {activeTeamNum || '?'}
+        </div>
+      </header>
+
+      <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto">
+        <div className="flex-1 flex justify-center">
+          <Board 
+            boardPositions={gameState?.boardPositions || {}} 
+            tokenColors={TOKEN_COLORS}
+          />
+        </div>
+        
+        <div className="w-full lg:w-96">
+          <Leaderboard boardPositions={gameState?.boardPositions || {}} />
+          
+          {gameState?.lastRoll && (
+            <div className="mt-4 bg-[#1e293b]/60 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/50 text-center">
+              <h4 className="text-sm text-slate-400 mb-1">Last Roll</h4>
+              <p className="text-2xl font-black text-orange-400">d{gameState.lastRoll.value}</p>
+              <p className="text-sm text-white mt-1">Team {parseInt(gameState.lastRoll.teamId?.replace('team', ''), 10)}</p>
+            </div>
+          )}
+
+          {gameState?.winner && (
+            <div className="mt-4 bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-sm rounded-2xl p-6 border border-orange-400/30 text-center animate-[pulse-glow_2s_ease-in-out_infinite]">
+              <h3 className="text-3xl font-black text-orange-400 mb-2">WINNER!</h3>
+              <p className="text-xl text-white">Team {parseInt(gameState.winner?.replace('team', ''), 10)}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
