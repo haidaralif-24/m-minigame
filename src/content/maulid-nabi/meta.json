@@ -2,5 +2,6 @@
   "id": "maulid-nabi",
   "title": "Maulid Board",
   "tagline": "Race the board, answer the questions, win the party.",
-  "teamCount": 6
+  "teamCount": 7,
+  "maxPlayers": 7
 }
