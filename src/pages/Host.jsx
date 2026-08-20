@@ -1,45 +1,34 @@
-import { useEffect } from 'react';
-import { useGameState } from '../hooks/useGameState.js';
+import { useEffect, useState } from 'react';
 import Board from '../components/Board.jsx';
-import Leaderboard from '../components/Leaderboard.jsx';
-import HostControls from '../components/HostControls.jsx';
-import { getInitialGameState } from '../services/gameLogic.js';
-import { TOKEN_COLORS, TEAM_NAMES, ACTIVE_META } from '../data/constants.js';
+import Dice from '../components/Dice.jsx';
+import { useRoom } from '../hooks/useRoom.js';
+import { getActivePlayerId, getRankings, resolveRapidShotOrder, RAPID_QUESTIONS } from '../services/gameLogic.js';
+import { updateRoom } from '../services/roomService.js';
+import { TOKEN_COLORS, ACTIVE_META } from '../data/constants.js';
+import boardTiles from '../data/boardTiles.json';
 
 export default function HostPage() {
-  const { gameState, loading, error, updateGameState } = useGameState();
+  const { room, loading, error, session } = useRoom();
+  const [pin, setPin] = useState(''); const [unlocked, setUnlocked] = useState(false); const [rolling, setRolling] = useState(false);
+  useEffect(() => { if (room?.hostId && session?.playerId === room.hostId) setUnlocked(true); }, [room?.hostId, session?.playerId]);
+  if (loading) return <div className="min-h-screen bg-[#0f172a] grid place-items-center text-slate-400">Loading room…</div>;
+  if (error || !room) return <div className="min-h-screen bg-[#0f172a] grid place-items-center text-red-400">Room unavailable.</div>;
+  if (!unlocked) return <div className="min-h-screen bg-[#0f172a] grid place-items-center p-4"><div className="bg-slate-800 p-8 rounded-3xl w-full max-w-sm"><h2 className="text-2xl font-black text-white mb-4">Host PIN</h2><input value={pin} onChange={(e)=>setPin(e.target.value)} type="password" className="w-full p-4 rounded-xl bg-slate-900 text-white mb-4"/><button onClick={()=>{if(pin==='dadarzz')setUnlocked(true)}} className="w-full py-4 rounded-xl bg-cyan-500 font-black text-white">Unlock</button></div></div>;
 
-  useEffect(() => {
-    if (gameState && !gameState.turnOrder) {
-      updateGameState(getInitialGameState());
-    }
-  }, [gameState]);
+  const players = room.players || {}; const playerEntries = Object.values(players).filter((p) => p.connected !== false); const activeId = getActivePlayerId(room); const activePlayer = players[activeId]; const rankings = getRankings(room, players); const update = (updates) => updateRoom(session.roomCode, updates);
+  const startRapid = async () => { const scores = Object.fromEntries(playerEntries.map((p) => [p.id, 0])); await update({ phase:'rapid-shot', round:1, turnOrder:[], activePlayerIndex:0, boardPositions:Object.fromEntries(playerEntries.map((p)=>[p.id,0])), winner:null, rapidShot:{questionIndex:0,answers:{},scores,submitted:{}} }); };
+  const advanceRapid = async () => { const index=room.rapidShot?.questionIndex||0; if(index<RAPID_QUESTIONS.length-1) return update({'rapidShot.questionIndex':index+1,'rapidShot.answers':{},'rapidShot.submitted':{}}); await update({phase:'order-reveal',turnOrder:resolveRapidShotOrder(players,room.rapidShot?.scores||{}),activePlayerIndex:0,round:1}); };
+  const beginBoard = () => update({phase:'board',activePlayerIndex:0,round:1,lastRoll:null});
+  const handleRoll = async (value) => { if(rolling||room.phase!=='board'||!activeId)return; setRolling(true); let position=Math.min(30,(room.boardPositions?.[activeId]||0)+value); const tile=boardTiles[position]; if(tile.type==='bonus')position=Math.min(30,position+tile.move); if(tile.type==='penalty')position=Math.max(0,position+tile.move); const boardPositions={...(room.boardPositions||{}),[activeId]:position}; const winner=position>=30?activeId:null; await update({boardPositions,lastRoll:{value,playerId:activeId},...(winner?{winner,phase:'finished'}:{})}); setTimeout(()=>setRolling(false),500); };
+  const nextTurn = () => { if(room.winner||!room.turnOrder?.length)return; const next=((room.activePlayerIndex||0)+1)%room.turnOrder.length; return update({activePlayerIndex:next,round:next===0?(room.round||1)+1:room.round,lastRoll:null}); };
 
-  if (loading) return <div className="p-8 text-center text-slate-400">Loading...</div>;
-  if (error) return <div className="p-8 text-center text-red-400">Error: {error.message}</div>;
-
-  return (
-    <div className="min-h-screen bg-[#0f172a] p-4 md:p-8">
-      <header className="text-center mb-8">
-        <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2 tracking-tight">
-          {ACTIVE_META.title}
-        </h1>
-        <p className="text-slate-400">Host View — {ACTIVE_META.tagline}</p>
-      </header>
-
-      <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto">
-        <div className="flex-1 flex justify-center">
-          <Board 
-            boardPositions={gameState?.boardPositions || {}} 
-            tokenColors={TOKEN_COLORS}
-          />
-        </div>
-        
-        <div className="w-full lg:w-80 space-y-6">
-          <Leaderboard boardPositions={gameState?.boardPositions || {}} />
-          <HostControls gameState={gameState} onUpdate={updateGameState} />
-        </div>
-      </div>
-    </div>
-  );
+  return <div className="min-h-screen bg-[#0f172a] text-white p-4 md:p-6"><header className="max-w-[1500px] mx-auto flex flex-wrap items-center justify-between gap-4 mb-5"><div><h1 className="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-500">{ACTIVE_META.title}</h1><p className="text-slate-400">Projected Host / Spectator View</p></div><div className="text-right"><div className="text-xs text-slate-400">ROOM CODE</div><div className="text-3xl font-black tracking-[.3em] text-cyan-300">{session.roomCode}</div></div></header><div className="max-w-[1500px] mx-auto grid lg:grid-cols-[1fr_360px] gap-5"><section><Board boardPositions={room.boardPositions} tokenColors={TOKEN_COLORS} players={players}/></section><aside className="space-y-4">
+    <div className="bg-slate-800/80 rounded-2xl p-5 border border-slate-700"><div className="flex justify-between mb-4"><h2 className="font-black text-xl">Players</h2><span className="text-cyan-300 font-bold">{playerEntries.length}/7</span></div>{playerEntries.map((p,i)=><div key={p.id} className={`flex items-center justify-between p-3 rounded-xl mb-2 ${p.id===activeId?'bg-cyan-500/15 border border-cyan-400/40':'bg-slate-900/60'}`}><span><b style={{color:TOKEN_COLORS[i]}}>{p.name}</b>{p.id===activeId&&<small className="ml-2 text-cyan-300">ACTIVE</small>}</span><span className="text-slate-400">{room.boardPositions?.[p.id]||0}</span></div>)}</div>
+    {room.phase==='lobby'&&<div className="bg-slate-800/80 rounded-2xl p-5"><p className="text-slate-400 mb-3">Players join with room code <b className="text-cyan-300">{session.roomCode}</b>.</p><button disabled={!playerEntries.length} onClick={startRapid} className="w-full py-4 rounded-xl bg-emerald-500 font-black disabled:opacity-40">START RAPID SHOT</button></div>}
+    {room.phase==='rapid-shot'&&<div className="bg-slate-800/80 rounded-2xl p-5"><div className="text-xs text-cyan-300 font-bold mb-2">RAPID SHOT {room.rapidShot.questionIndex+1}/{RAPID_QUESTIONS.length}</div><h2 className="text-xl font-black mb-4">{RAPID_QUESTIONS[room.rapidShot.questionIndex].text}</h2><p className="text-slate-400 text-sm mb-4">Submitted: {Object.keys(room.rapidShot.submitted||{}).length}/{playerEntries.length}</p><button onClick={advanceRapid} className="w-full py-3 rounded-xl bg-blue-500 font-bold">{room.rapidShot.questionIndex===RAPID_QUESTIONS.length-1?'CALCULATE ORDER':'NEXT QUESTION'}</button></div>}
+    {room.phase==='order-reveal'&&<div className="bg-slate-800/80 rounded-2xl p-5"><h2 className="text-2xl font-black mb-3">Starting Order</h2>{room.turnOrder.map((id,i)=><div key={id} className="flex justify-between p-2"><span>#{i+1} {players[id]?.name}</span><b>{room.rapidShot?.scores?.[id]||0}</b></div>)}<button onClick={beginBoard} className="w-full mt-3 py-4 rounded-xl bg-emerald-500 font-black">START BOARD</button></div>}
+    {room.phase==='board'&&<div className="bg-slate-800/80 rounded-2xl p-5"><div className="mb-4"><span className="text-slate-400">Round {room.round}</span><h2 className="text-2xl font-black">{activePlayer?.name||'—'}'s turn</h2></div><Dice onRollComplete={handleRoll} disabled={rolling}/>{room.lastRoll&&<button onClick={nextTurn} className="w-full mt-3 py-3 rounded-xl bg-emerald-500 font-bold">NEXT PLAYER →</button>}</div>}
+    {room.phase==='finished'&&<div className="bg-slate-800/80 rounded-2xl p-6 text-center"><div className="text-5xl mb-3">🏆</div><h2 className="text-3xl font-black text-orange-400">{players[room.winner]?.name} WINS!</h2></div>}
+    <div className="bg-slate-800/80 rounded-2xl p-5"><h2 className="font-black mb-3">Leaderboard</h2>{rankings.map((id,i)=><div key={id} className="flex justify-between py-2"><span>#{i+1} {players[id]?.name}</span><b>{room.boardPositions?.[id]||0}</b></div>)}</div>
+  </aside></div></div>;
 }
